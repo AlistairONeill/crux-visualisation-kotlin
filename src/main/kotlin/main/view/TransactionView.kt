@@ -1,6 +1,8 @@
 package main.view
 
 import main.presenter.VisualisationPresenter
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.*
@@ -10,6 +12,8 @@ class TransactionView: JPanel(), ActionListener {
     private val putButton = JButton("Put")
     private val deleteButton = JButton("Delete")
     private val resetButton = JButton("Reset")
+    private val labelValidTime = JLabel("Valid Time")
+    private val labelEndValidTime = JLabel("End Valid Time")
     private val validTimeField = JTextField()
     private val endValidTimeField = JTextField()
 
@@ -20,14 +24,25 @@ class TransactionView: JPanel(), ActionListener {
     private val endValidTime get() = endValidTimeField.text
 
     init {
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        layout = GridBagLayout()
 
-        add(colourChooser)
-        add(validTimeField)
-        add(endValidTimeField)
-        add(putButton)
-        add(deleteButton)
-        add(resetButton)
+        fun add(component: JComponent, x: Int, y: Int, width: Int) {
+            add(component, GridBagConstraints().apply {
+                fill = GridBagConstraints.HORIZONTAL
+                gridx = x
+                gridy = y
+                gridwidth = width
+            })
+        }
+
+        add(colourChooser, 0, 0, 2)
+        add(labelValidTime, 0, 1, 1)
+        add(validTimeField, 1, 1, 1)
+        add(labelEndValidTime, 0, 2, 1)
+        add(endValidTimeField, 1, 2, 1)
+        add(putButton, 0, 3, 2)
+        add(deleteButton, 0, 4, 2)
+        add(resetButton, 0, 5, 2)
 
         putButton.actionCommand = "PUT"
         putButton.addActionListener(this)

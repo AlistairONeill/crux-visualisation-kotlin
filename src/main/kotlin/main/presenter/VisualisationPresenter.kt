@@ -92,8 +92,8 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
             error("Invalid End Valid Time")
         }
 
-        dataModel.put(hex, vt.date, evt.date)
-        refresh()
+        val data = dataModel.put(hex, vt.date, evt.date)
+        refresh(data)
     }
 
     fun put(hex: Int, vtRaw: String) {
@@ -115,13 +115,13 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
             return
         }
 
-        dataModel.put(hex, vt.date)
-        refresh()
+        val data = dataModel.put(hex, vt.date)
+        refresh(data)
     }
 
     fun put(hex: Int) {
-        dataModel.put(hex)
-        refresh()
+        val data = dataModel.put(hex)
+        refresh(data)
     }
 
     fun delete(vtRaw: String, evtRaw: String) {
@@ -157,8 +157,8 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
             error("Invalid End Valid Time")
         }
 
-        dataModel.delete(vt.date, evt.date)
-        refresh()
+        val data = dataModel.delete(vt.date, evt.date)
+        refresh(data)
     }
 
     fun delete(vtRaw: String) {
@@ -180,23 +180,26 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
             return
         }
 
-        dataModel.delete(vt.date)
-        refresh()
+        val data = dataModel.delete(vt.date)
+        refresh(data)
     }
 
-    fun refresh() {
+    fun delete() {
+        val data = dataModel.delete()
+        refresh(data)
+    }
+
+    fun refresh(transactionData: DataModel.TransactionData) {
+        visualisationFrame.historyView.add(transactionData)
         val data = dataModel.getData(Time.startOfDay)
         visualisationFrame.drawingView.refresh(data)
     }
 
-    fun delete() {
-        dataModel.delete()
-        refresh()
-    }
-
     fun reset() {
+        visualisationFrame.historyView.clear()
         dataModel.reset()
-        refresh()
+        val data = dataModel.getData(Time.startOfDay)
+        visualisationFrame.drawingView.refresh(data)
     }
 
     fun error(message: String) {
