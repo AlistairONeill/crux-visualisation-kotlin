@@ -2,4 +2,4 @@ package main.extension
 
 import clojure.lang.Keyword
 
-val String.kw get() = Keyword.intern(this)
+val String.kw: Keyword get() = Keyword.intern(this)

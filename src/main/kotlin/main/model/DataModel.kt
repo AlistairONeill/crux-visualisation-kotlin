@@ -2,11 +2,8 @@ package main.model
 
 import clojure.lang.Keyword
 import crux.api.Crux
-import crux.kotlin.projection.ICruxDataClass
-import crux.kotlin.projection.annotation.CruxKey
 import crux.kotlin.transactions.submitTx
 import main.extension.kw
-import java.awt.Color
 import java.time.Duration
 import java.util.*
 

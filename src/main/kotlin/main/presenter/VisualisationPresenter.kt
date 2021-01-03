@@ -6,7 +6,7 @@ import java.time.Instant
 import java.util.*
 import javax.swing.JOptionPane
 
-class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
+class VisualisationPresenter(private val visualisationFrame: VisualisationFrame) {
     data class Time(val hours: Int, val minutes: Int, val seconds: Int) {
         companion object {
             fun factory(raw: String): Time? {
@@ -48,10 +48,10 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         }
 
         val isValid get() = hours in (0..23) && minutes in (0..59) && seconds in (0..59)
-        val date get() = Date.from(Instant.ofEpochSecond(startOfDay + seconds + 60 * minutes + 3600 * hours))
+        val date: Date get() = Date.from(Instant.ofEpochSecond(startOfDay + seconds + 60 * minutes + 3600 * hours))
     }
 
-    val dataModel = DataModel()
+    private val dataModel = DataModel()
 
     init {
         visualisationFrame.transactionView.presenter = this
@@ -84,7 +84,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         }
 
         if (!vt.isValid) {
-            error("Invalid Valid Vime")
+            error("Invalid Valid Time")
             return
         }
 
@@ -96,7 +96,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         refresh(data)
     }
 
-    fun put(hex: Int, vtRaw: String) {
+    private fun put(hex: Int, vtRaw: String) {
         if (vtRaw.isEmpty()) {
             put(hex)
             return
@@ -111,7 +111,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
 
 
         if (!vt.isValid) {
-            error("Invalid Valid Vime")
+            error("Invalid Valid Time")
             return
         }
 
@@ -119,7 +119,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         refresh(data)
     }
 
-    fun put(hex: Int) {
+    private fun put(hex: Int) {
         val data = dataModel.put(hex)
         refresh(data)
     }
@@ -149,7 +149,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         }
 
         if (!vt.isValid) {
-            error("Invalid Valid Vime")
+            error("Invalid Valid Time")
             return
         }
 
@@ -161,7 +161,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         refresh(data)
     }
 
-    fun delete(vtRaw: String) {
+    private fun delete(vtRaw: String) {
         if (vtRaw.isEmpty()) {
             delete()
             return
@@ -176,7 +176,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
 
 
         if (!vt.isValid) {
-            error("Invalid Valid Vime")
+            error("Invalid Valid Time")
             return
         }
 
@@ -184,12 +184,12 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         refresh(data)
     }
 
-    fun delete() {
+    private fun delete() {
         val data = dataModel.delete()
         refresh(data)
     }
 
-    fun refresh(transactionData: DataModel.TransactionData) {
+    private fun refresh(transactionData: DataModel.TransactionData) {
         visualisationFrame.historyView.add(transactionData)
         val data = dataModel.getData(Time.startOfDay)
         visualisationFrame.drawingView.refresh(data)
@@ -209,7 +209,7 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         visualisationFrame.drawingView.refresh(data)
     }
 
-    fun error(message: String) {
+    private fun error(message: String) {
         JOptionPane.showMessageDialog(visualisationFrame, message)
     }
 }

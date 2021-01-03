@@ -68,19 +68,19 @@ class TransactionView: JPanel(), ActionListener {
         }
     }
 
-    fun put() {
+    private fun put() {
         presenter.put(colour, validTime, endValidTime)
     }
 
-    fun delete() {
+    private fun delete() {
         presenter.delete(validTime, endValidTime)
     }
 
-    fun evict() {
+    private fun evict() {
         presenter.evict()
     }
 
-    fun reset() {
+    private fun reset() {
         presenter.reset()
     }
 }
