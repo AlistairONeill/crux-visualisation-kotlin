@@ -195,6 +195,13 @@ class VisualisationPresenter(val visualisationFrame: VisualisationFrame) {
         visualisationFrame.drawingView.refresh(data)
     }
 
+    fun evict() {
+        visualisationFrame.historyView.clear()
+        dataModel.evict()
+        val data = dataModel.getData(Time.startOfDay)
+        visualisationFrame.drawingView.refresh(data)
+    }
+
     fun reset() {
         visualisationFrame.historyView.clear()
         dataModel.reset()

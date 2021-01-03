@@ -17,12 +17,6 @@ class DataModel {
         private val tt: Keyword = "crux.tx/tx-time".kw
     }
 
-    data class Colour(
-        @property:CruxKey("colour") val colour: Int
-    ): ICruxDataClass {
-        override val cruxId = id
-    }
-
     private var cruxNode = Crux.startNode()
 
     private val validTimes = HashSet<Date>()
@@ -136,6 +130,12 @@ class DataModel {
         }
 
         return DrawingData(validTimes.map { it.time / 1000 - startOfDay}, transactionTimes.map { it.time/ 1000 - startOfDay }, colours)
+    }
+
+    fun evict() {
+        cruxNode.submitTx {
+            evict(id)
+        }
     }
 
     fun reset() {

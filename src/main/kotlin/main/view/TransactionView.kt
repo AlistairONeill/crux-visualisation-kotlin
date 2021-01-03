@@ -12,6 +12,7 @@ class TransactionView: JPanel(), ActionListener {
     private val putButton = JButton("Put")
     private val deleteButton = JButton("Delete")
     private val resetButton = JButton("Reset")
+    private val evictButton = JButton("Evict")
     private val labelValidTime = JLabel("Valid Time")
     private val labelEndValidTime = JLabel("End Valid Time")
     private val validTimeField = JTextField()
@@ -42,13 +43,17 @@ class TransactionView: JPanel(), ActionListener {
         add(endValidTimeField, 1, 2, 1)
         add(putButton, 0, 3, 2)
         add(deleteButton, 0, 4, 2)
-        add(resetButton, 0, 5, 2)
+        add(evictButton, 0, 5, 2)
+        add(resetButton, 0, 6, 2)
 
         putButton.actionCommand = "PUT"
         putButton.addActionListener(this)
 
         deleteButton.actionCommand = "DELETE"
         deleteButton.addActionListener(this)
+
+        evictButton.actionCommand = "EVICT"
+        evictButton.addActionListener(this)
 
         resetButton.actionCommand = "RESET"
         resetButton.addActionListener(this)
@@ -59,6 +64,7 @@ class TransactionView: JPanel(), ActionListener {
             "PUT" -> put()
             "DELETE" -> delete()
             "RESET" -> reset()
+            "EVICT" -> evict()
         }
     }
 
@@ -68,6 +74,10 @@ class TransactionView: JPanel(), ActionListener {
 
     fun delete() {
         presenter.delete(validTime, endValidTime)
+    }
+
+    fun evict() {
+        presenter.evict()
     }
 
     fun reset() {
