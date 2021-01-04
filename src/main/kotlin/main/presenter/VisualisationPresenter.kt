@@ -28,7 +28,6 @@ class VisualisationPresenter(private val visualisationFrame: VisualisationFrame)
     fun reset() {
         visualisationFrame.historyView.clear()
         dataModel = DataModel(Crux.startNode())
-        val data = dataModel.getData()
-        visualisationFrame.drawingView.refresh(data)
+        visualisationFrame.drawingView.refresh(null)
     }
 }

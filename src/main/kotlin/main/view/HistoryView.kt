@@ -24,6 +24,9 @@ class HistoryView: JPanel() {
 
     fun clear() {
         removeAll()
+        invalidate()
+        revalidate()
+        repaint()
     }
 
     class HistoryPanel(data: TransactionData): JPanel() {

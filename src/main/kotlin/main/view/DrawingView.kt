@@ -26,7 +26,7 @@ class DrawingView: JPanel() {
         add(north, BorderLayout.NORTH)
     }
 
-    fun refresh(data: DrawingData) {
+    fun refresh(data: DrawingData?) {
         this.data = data
         central.repaint()
         east.repaint()
