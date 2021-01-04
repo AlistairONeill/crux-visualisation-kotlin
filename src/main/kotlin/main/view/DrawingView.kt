@@ -1,6 +1,7 @@
 package main.view
 
-import main.model.DataModel
+import main.model.DrawingData
+import main.util.TodayDateFormat
 import java.awt.BorderLayout
 import java.awt.Graphics
 import javax.swing.JPanel
@@ -8,18 +9,7 @@ import java.awt.Color
 import java.awt.Dimension
 
 class DrawingView: JPanel() {
-    companion object {
-        fun format(input: Long): String {
-            fun Long.fmt(): String = toString().padEnd(2, '0')
-            var time = input
-            val seconds = time % 60
-            time /= 60
-            val minutes = time % 60
-            val hours = time / 60
-            return "${hours}:${minutes.fmt()}:${seconds.fmt()}"
-        }
-    }
-    private var data: DataModel.DrawingData? = null
+    private var data: DrawingData? = null
 
     private val central = Central(this)
     private val east = East(this)
@@ -36,7 +26,7 @@ class DrawingView: JPanel() {
         add(north, BorderLayout.NORTH)
     }
 
-    fun refresh(data: DataModel.DrawingData) {
+    fun refresh(data: DrawingData) {
         this.data = data
         central.repaint()
         east.repaint()
@@ -56,12 +46,15 @@ class DrawingView: JPanel() {
             val width = width.toDouble()
             val height = height.toDouble()
 
-            val firstTt = data.transactionTimes.first()
-            val lastTt = data.transactionTimes.last()
+            val validTimes = data.validTimes.map { TodayDateFormat.shared.seconds(it) }
+            val transactionTimes = data.transactionTimes.map { TodayDateFormat.shared.seconds(it) }
+
+            val firstTt = transactionTimes.first()
+            val lastTt = transactionTimes.last()
             val dTt = (lastTt - firstTt) * 1.2
 
-            val yPos = data.validTimes.map { it * height / 24 / 60 / 60 }.map { it.toInt() }
-            val xPos = data.transactionTimes.map { (it - firstTt) * width / dTt }.map { it.toInt() }
+            val yPos = validTimes.map { it * height / 24 / 60 / 60 }.map { it.toInt() }
+            val xPos = transactionTimes.map { (it - firstTt) * width / dTt }.map { it.toInt() }
 
             val x = xPos.last()
             val y = yPos.last()
@@ -109,9 +102,14 @@ class DrawingView: JPanel() {
 
             val height = height.toDouble()
 
-            val yPos = data.validTimes.map { it to (it * height / 24 / 60 / 60).toInt() }
+            val validTimes = data.validTimes.map { TodayDateFormat.shared.seconds(it) }
+
+            val yPos = validTimes.mapIndexed { i, it ->
+                data.validTimes[i] to (it * height / 24 / 60 / 60).toInt()
+            }
+
             yPos.forEach {
-                g.drawString(format(it.first), 0, it.second)
+                g.drawString(TodayDateFormat.shared.format(it.first), 0, it.second)
             }
         }
     }
@@ -128,13 +126,18 @@ class DrawingView: JPanel() {
 
             val width = parent.central.width.toDouble()
 
-            val firstTt = data.transactionTimes.first()
-            val lastTt = data.transactionTimes.last()
+            val transactionTimes = data.transactionTimes.map { TodayDateFormat.shared.seconds(it) }
+
+            val firstTt = transactionTimes.first()
+            val lastTt = transactionTimes.last()
             val dTt = (lastTt - firstTt) * 1.2
 
-            val xPos = data.transactionTimes.map { it to ((it - firstTt) * width / dTt).toInt() }
+            val xPos = transactionTimes.mapIndexed { i, it ->
+                data.transactionTimes[i] to ((it - firstTt) * width / dTt).toInt()
+            }
+
             xPos.forEach {
-                g.drawString(format(it.first), it.second, height)
+                g.drawString(TodayDateFormat.shared.format(it.first), it.second, height)
             }
         }
     }

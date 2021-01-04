@@ -4,6 +4,7 @@ import clojure.lang.Keyword
 import crux.api.Crux
 import crux.kotlin.transactions.submitTx
 import main.extension.kw
+import main.util.TodayDateFormat
 import java.time.Duration
 import java.util.*
 
@@ -19,79 +20,39 @@ class DataModel {
     private val validTimes = HashSet<Date>()
     private val transactionTimes = HashSet<Date>()
 
-    data class TransactionData(val type: Type, val hex: Int?, val transactionTime: Date, val validTime: Date, val endValidTime: Date?) {
-        enum class Type {
-            PUT, DELETE
+
+    fun submit(transactionRequest: TransactionRequestData): TransactionData {
+        return when (transactionRequest.type) {
+            TransactionType.PUT -> put(transactionRequest.colour, transactionRequest.validTime, transactionRequest.endValidTime)
+            TransactionType.DELETE -> delete(transactionRequest.validTime, transactionRequest.endValidTime)
+            TransactionType.EVICT -> evict()
         }
     }
 
-    fun put(hex: Int): TransactionData {
+    private fun put(colour: Int, vt: Date?, evt: Date?): TransactionData {
         val ret = cruxNode.submitTx {
             put(id) {
-                add(cid to hex)
-            }
-        }
-
-        val tt = ret[tt] as Date
-        validTimes.add(tt)
-        transactionTimes.add(tt)
-        return TransactionData(TransactionData.Type.PUT, hex, tt, tt, null)
-    }
-
-    fun put(hex: Int, vt: Date): TransactionData {
-        val ret = cruxNode.submitTx {
-            put(id) {
-                add(cid to hex)
-                validTime = vt
-            }
-        }
-
-        val tt = ret[tt] as Date
-        validTimes.add(vt)
-        transactionTimes.add(tt)
-        return TransactionData(TransactionData.Type.PUT, hex, tt, vt, null)
-    }
-
-    fun put(hex: Int, vt: Date, evt: Date): TransactionData {
-        val ret = cruxNode.submitTx {
-            put(id) {
-                add(cid to hex)
+                add(cid to colour)
                 validTime = vt
                 endValidTime = evt
             }
         }
 
         val tt = ret[tt] as Date
-        validTimes.add(vt)
-        validTimes.add(evt)
+        validTimes.add(vt ?: tt)
+        evt?.also { validTimes.add(it) }
         transactionTimes.add(tt)
-        return TransactionData(TransactionData.Type.PUT, hex, tt, vt, evt)
+
+        return TransactionData(
+            TransactionType.PUT,
+            tt,
+            vt ?: tt,
+            evt,
+            colour
+        )
     }
 
-    fun delete(): TransactionData {
-        val ret = cruxNode.submitTx {
-            delete(id)
-        }
-
-        val tt = ret[tt] as Date
-        validTimes.add(tt)
-        transactionTimes.add(tt)
-        return TransactionData(TransactionData.Type.DELETE, null, tt, tt, null)
-    }
-
-    fun delete(vt: Date): TransactionData {
-        val ret = cruxNode.submitTx {
-            delete(id) {
-                validTime = vt
-            }
-        }
-        val tt = ret[tt] as Date
-        validTimes.add(vt)
-        transactionTimes.add(tt)
-        return TransactionData(TransactionData.Type.DELETE, null, tt, vt, null)
-    }
-
-    fun delete(vt: Date, evt: Date): TransactionData {
+    fun delete(vt: Date?, evt: Date?): TransactionData {
         val ret = cruxNode.submitTx {
             delete(id) {
                 validTime = vt
@@ -100,15 +61,36 @@ class DataModel {
         }
 
         val tt = ret[tt] as Date
-        validTimes.add(vt)
-        validTimes.add(evt)
+        validTimes.add(vt ?: tt)
+        evt?.also { validTimes.add(it) }
         transactionTimes.add(tt)
-        return TransactionData(TransactionData.Type.DELETE, null, tt, vt, evt)
+
+        return TransactionData(
+            TransactionType.DELETE,
+            tt,
+            vt ?: tt,
+            evt,
+            null
+        )
     }
 
-    data class DrawingData(val validTimes: List<Long>, val transactionTimes: List<Long>, val colours: List<List<Int?>>)
+    fun evict(): TransactionData {
+        val ret = cruxNode.submitTx {
+            evict(id)
+        }
 
-    fun getData(startOfDay: Long): DrawingData {
+        val tt = ret[tt] as Date
+
+        return TransactionData(
+            TransactionType.EVICT,
+            tt,
+            null,
+            null,
+            null
+        )
+    }
+
+    fun getData(): DrawingData {
         cruxNode.sync(Duration.ofSeconds(10))
 
         val validTimes = validTimes.toList().sorted()
@@ -126,13 +108,7 @@ class DataModel {
             }
         }
 
-        return DrawingData(validTimes.map { it.time / 1000 - startOfDay}, transactionTimes.map { it.time/ 1000 - startOfDay }, colours)
-    }
-
-    fun evict() {
-        cruxNode.submitTx {
-            evict(id)
-        }
+        return DrawingData(validTimes, transactionTimes, colours)
     }
 
     fun reset() {

@@ -1,6 +1,9 @@
 package main.view
 
+import main.model.TransactionRequestData
+import main.model.TransactionType
 import main.presenter.VisualisationPresenter
+import main.util.TodayDateFormat
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
@@ -8,6 +11,13 @@ import java.awt.event.ActionListener
 import javax.swing.*
 
 class TransactionView: JPanel(), ActionListener {
+    companion object {
+        private const val ACTION_COMMAND_PUT = "PUT"
+        private const val ACTION_COMMAND_DELETE = "DELETE"
+        private const val ACTION_COMMAND_EVICT = "EVICT"
+        private const val ACTION_COMMAND_RESET = "RESET"
+    }
+
     private val colourChooser = JColorChooser()
     private val putButton = JButton("Put")
     private val deleteButton = JButton("Delete")
@@ -46,38 +56,39 @@ class TransactionView: JPanel(), ActionListener {
         add(evictButton, 0, 5, 2)
         add(resetButton, 0, 6, 2)
 
-        putButton.actionCommand = "PUT"
+        putButton.actionCommand = ACTION_COMMAND_PUT
         putButton.addActionListener(this)
 
-        deleteButton.actionCommand = "DELETE"
+        deleteButton.actionCommand = ACTION_COMMAND_DELETE
         deleteButton.addActionListener(this)
 
-        evictButton.actionCommand = "EVICT"
+        evictButton.actionCommand = ACTION_COMMAND_EVICT
         evictButton.addActionListener(this)
 
-        resetButton.actionCommand = "RESET"
+        resetButton.actionCommand = ACTION_COMMAND_RESET
         resetButton.addActionListener(this)
     }
 
     override fun actionPerformed(ae: ActionEvent?) {
-        when (ae!!.actionCommand) {
-            "PUT" -> put()
-            "DELETE" -> delete()
-            "RESET" -> reset()
-            "EVICT" -> evict()
+        val actionCommand = ae?.actionCommand ?: return
+        if (actionCommand == ACTION_COMMAND_RESET) {
+            reset()
         }
-    }
+        else {
+            val type = when (actionCommand) {
+                ACTION_COMMAND_PUT -> TransactionType.PUT
+                ACTION_COMMAND_EVICT -> TransactionType.EVICT
+                ACTION_COMMAND_DELETE -> TransactionType.DELETE
+                else -> throw Exception()
+            }
 
-    private fun put() {
-        presenter.put(colour, validTime, endValidTime)
-    }
+            val colour = colour
+            val validTime = TodayDateFormat.shared.parse(validTime)
+            val endValidTime = TodayDateFormat.shared.parse(endValidTime)
 
-    private fun delete() {
-        presenter.delete(validTime, endValidTime)
-    }
-
-    private fun evict() {
-        presenter.evict()
+            val transactionRequest = TransactionRequestData(type, validTime, endValidTime, colour)
+            presenter.submit(transactionRequest)
+        }
     }
 
     private fun reset() {
