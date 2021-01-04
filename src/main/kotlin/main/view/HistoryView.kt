@@ -1,11 +1,9 @@
 package main.view
 
-import main.model.DataModel
 import main.model.TransactionData
 import main.model.TransactionType
 import main.util.TodayDateFormat
 import java.awt.*
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.swing.BoxLayout
 import javax.swing.JLabel

@@ -6,4 +6,5 @@ data class TransactionRequestData(
     val type: TransactionType,
     var validTime: Date?,
     val endValidTime: Date?,
-    val colour: Int)
+    val colour: Int
+)

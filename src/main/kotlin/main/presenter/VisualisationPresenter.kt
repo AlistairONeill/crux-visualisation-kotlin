@@ -1,15 +1,13 @@
 package main.presenter
 
+import crux.api.Crux
 import main.VisualisationFrame
 import main.model.DataModel
 import main.model.TransactionData
 import main.model.TransactionRequestData
-import java.time.Instant
-import java.util.*
-import javax.swing.JOptionPane
 
 class VisualisationPresenter(private val visualisationFrame: VisualisationFrame) {
-    private val dataModel = DataModel()
+    private var dataModel = DataModel(Crux.startNode())
 
     init {
         visualisationFrame.transactionView.presenter = this
@@ -29,12 +27,8 @@ class VisualisationPresenter(private val visualisationFrame: VisualisationFrame)
 
     fun reset() {
         visualisationFrame.historyView.clear()
-        dataModel.reset()
+        dataModel = DataModel(Crux.startNode())
         val data = dataModel.getData()
         visualisationFrame.drawingView.refresh(data)
-    }
-
-    private fun error(message: String) {
-        JOptionPane.showMessageDialog(visualisationFrame, message)
     }
 }

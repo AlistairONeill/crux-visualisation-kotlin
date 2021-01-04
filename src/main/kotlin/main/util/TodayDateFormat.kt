@@ -5,7 +5,7 @@ import java.time.Instant
 import java.util.*
 
 class TodayDateFormat(
-    val startOfDay: Long) {
+    private val startOfDay: Long) {
     companion object {
         val shared = getInstance()
         fun getInstance() = TodayDateFormat(
@@ -30,7 +30,7 @@ class TodayDateFormat(
         return time / 1000
     }
 
-    fun seconds(input: String): Long? {
+    private fun seconds(input: String): Long? {
         fun parseException() {
             throw Exception("Could not parse input time: $input")
         }
@@ -62,11 +62,5 @@ class TodayDateFormat(
         return time
     }
 
-    fun format(input: Date) = output.format(input)
-
-    fun format(input: Long): String {
-        val date = Date()
-        date.time = input
-        return format(date)
-    }
+    fun format(input: Date): String = output.format(input)
 }

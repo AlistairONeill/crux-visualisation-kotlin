@@ -9,17 +9,7 @@ import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TodayDateFormatTests {
-    private val now = Calendar.getInstance().time
-    private val nowString = SimpleDateFormat("dd MMMM yyyy ").format(now)
-    private val timeFormat = SimpleDateFormat("dd MMMM yyyy HH:mm:ss")
-
     private val testFormat = TodayDateFormat.getInstance()
-
-    private fun getDateAfterEpoch(hours: Int, minutes: Int, seconds: Int): Date {
-        val date = Date()
-        date.time = 1000L * ((hours - 1) * 3600 + minutes * 60 + seconds)
-        return date
-    }
 
     private data class TestDatum(val date: Date, val fullString: String, val partialStrings: List<String>) {
         companion object {

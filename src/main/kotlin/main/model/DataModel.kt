@@ -1,25 +1,23 @@
 package main.model
 
 import clojure.lang.Keyword
-import crux.api.Crux
+import crux.api.ICruxAPI
 import crux.kotlin.transactions.submitTx
 import main.extension.kw
-import main.util.TodayDateFormat
 import java.time.Duration
 import java.util.*
 
-class DataModel {
+class DataModel(
+    private val cruxNode: ICruxAPI
+) {
     companion object {
         private val id: Keyword = "id".kw
         private val cid: Keyword = "colour".kw
         private val tt: Keyword = "crux.tx/tx-time".kw
     }
 
-    private var cruxNode = Crux.startNode()
-
     private val validTimes = HashSet<Date>()
     private val transactionTimes = HashSet<Date>()
-
 
     fun submit(transactionRequest: TransactionRequestData): TransactionData {
         return when (transactionRequest.type) {
@@ -52,7 +50,7 @@ class DataModel {
         )
     }
 
-    fun delete(vt: Date?, evt: Date?): TransactionData {
+    private fun delete(vt: Date?, evt: Date?): TransactionData {
         val ret = cruxNode.submitTx {
             delete(id) {
                 validTime = vt
@@ -74,7 +72,7 @@ class DataModel {
         )
     }
 
-    fun evict(): TransactionData {
+    private fun evict(): TransactionData {
         val ret = cruxNode.submitTx {
             evict(id)
         }
@@ -109,15 +107,5 @@ class DataModel {
         }
 
         return DrawingData(validTimes, transactionTimes, colours)
-    }
-
-    fun reset() {
-        try {
-            cruxNode.close()
-        }
-        catch (e: Exception) {
-            //meh
-        }
-        cruxNode = Crux.startNode()
     }
 }
