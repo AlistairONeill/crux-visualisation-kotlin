@@ -21,6 +21,8 @@ This will run the test suite and create a jar
 
 Will run the compiled jar
 
+# Usage
+
 The graph shows what colour you would retrieve from Crux based on a given transaction and valid time
 The x-axis is Transaction Time and scales based on the actual transaction times.
 The y-axis is the Valid Time and goes from 00:00:00 to 23:59:59 of the current day.
