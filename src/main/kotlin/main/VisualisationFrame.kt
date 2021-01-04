@@ -25,7 +25,6 @@ class VisualisationFrame: JFrame("Crux Visualisation") {
 
         val historyScroll = JScrollPane()
         historyScroll.preferredSize = Dimension(200, -1)
-        historyScroll
         add(historyScroll, BorderLayout.WEST)
         historyScroll.setViewportView(historyView)
     }

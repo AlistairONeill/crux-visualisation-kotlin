@@ -2,7 +2,11 @@ package main
 
 import main.presenter.VisualisationPresenter
 
-fun main() {
-    val frame = VisualisationFrame()
-    val presenter = VisualisationPresenter(frame)
+class Main {
+    companion object {
+        @JvmStatic fun main(args: Array<String>) {
+            val frame = VisualisationFrame()
+            VisualisationPresenter(frame)
+        }
+    }
 }
