@@ -1,9 +1,9 @@
 package main.model
 
-import clojure.lang.Keyword
+import crux.api.CruxDocument
 import crux.api.ICruxAPI
-import crux.kotlin.transactions.submitTx
-import main.extension.kw
+import crux.api.TransactionInstant
+import crux.api.tx.submitTx
 import java.time.Duration
 import java.util.*
 
@@ -11,9 +11,8 @@ class DataModel(
     private val cruxNode: ICruxAPI
 ) {
     companion object {
-        private val id: Keyword = "id".kw
-        private val cid: Keyword = "colour".kw
-        private val tt: Keyword = "crux.tx/tx-time".kw
+        private val id = "id"
+        private val cid = "colour"
     }
 
     private val validTimes = HashSet<Date>()
@@ -27,66 +26,67 @@ class DataModel(
         }
     }
 
-    private fun put(colour: Int, vt: Date?, evt: Date?): TransactionData {
-        val ret = cruxNode.submitTx {
-            put(id) {
-                add(cid to colour)
-                validTime = vt
-                endValidTime = evt
-            }
+    private fun put(colour: Int, validTime: Date?, endValidTime: Date?): TransactionData {
+        val document = CruxDocument.build(id) {
+            it.put(cid, colour)
         }
 
-        val tt = ret[tt] as Date
-        validTimes.add(vt ?: tt)
-        evt?.also { validTimes.add(it) }
-        transactionTimes.add(tt)
+
+        val transactionTime = cruxNode.submitTx {
+            when {
+                validTime == null -> put(document)
+                endValidTime == null -> put(document from validTime)
+                else -> put(document from validTime until endValidTime)
+            }
+        }.let(TransactionInstant::getTime)
+
+        validTimes.add(validTime ?: transactionTime)
+        endValidTime?.also(validTimes::add)
+        transactionTimes.add(transactionTime)
 
         return TransactionData(
             TransactionType.PUT,
-            tt,
-            vt ?: tt,
-            evt,
+            transactionTime,
+            validTime ?: transactionTime,
+            endValidTime,
             colour
         )
     }
 
-    private fun delete(vt: Date?, evt: Date?): TransactionData {
-        val ret = cruxNode.submitTx {
-            delete(id) {
-                validTime = vt
-                endValidTime = evt
+    private fun delete(validTime: Date?, endValidTime: Date?): TransactionData {
+        val transactionTime = cruxNode.submitTx {
+            when {
+                validTime == null -> delete(cid)
+                endValidTime == null -> delete(cid from validTime)
+                else -> delete(cid from validTime until endValidTime)
             }
-        }
+        }.let(TransactionInstant::getTime)
 
-        val tt = ret[tt] as Date
-        validTimes.add(vt ?: tt)
-        evt?.also { validTimes.add(it) }
-        transactionTimes.add(tt)
+        validTimes.add(validTime ?: transactionTime)
+        endValidTime?.also { validTimes.add(it) }
+        transactionTimes.add(transactionTime)
 
         return TransactionData(
             TransactionType.DELETE,
-            tt,
-            vt ?: tt,
-            evt,
+            transactionTime,
+            validTime ?: transactionTime,
+            endValidTime,
             null
         )
     }
 
-    private fun evict(): TransactionData {
-        val ret = cruxNode.submitTx {
+    private fun evict(): TransactionData =
+        cruxNode.submitTx {
             evict(id)
+        }.let {
+            TransactionData(
+                TransactionType.EVICT,
+                it.time,
+                null,
+                null,
+                null
+            )
         }
-
-        val tt = ret[tt] as Date
-
-        return TransactionData(
-            TransactionType.EVICT,
-            tt,
-            null,
-            null,
-            null
-        )
-    }
 
     fun getData(): DrawingData {
         cruxNode.sync(Duration.ofSeconds(10))
@@ -94,15 +94,9 @@ class DataModel(
         val validTimes = validTimes.toList().sorted()
         val transactionTimes = transactionTimes.toList().sorted()
 
-        val colours = transactionTimes.map { tt ->
-            validTimes.map { vt ->
-                val entity = cruxNode.openDB(vt, tt).entity(id)
-                if (entity == null) {
-                    null
-                }
-                else {
-                    entity["colour".kw] as Int
-                }
+        val colours = transactionTimes.map { transactionTime ->
+            validTimes.map { validTime ->
+                cruxNode.openDB(validTime, transactionTime).entity(id)?.get("colour") as Int?
             }
         }
 
